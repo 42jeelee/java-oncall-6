@@ -17,7 +17,13 @@ public class WorkerModel {
     }
 
     public String getCurrentWorker() {
-        return workerList.get(workerIndex);
+        String currentWorker = getWaitWorker();
+        if (currentWorker != null) {
+            return currentWorker;
+        }
+        currentWorker = workerList.get(workerIndex);
+        this.workerIndex = (this.workerIndex + 1) % this.workerList.size();
+        return currentWorker;
     }
 
     public boolean isWaitWorker() {
@@ -28,20 +34,19 @@ public class WorkerModel {
         return workerList.size();
     }
 
-    public String getWaitWorker() {
+    private String getWaitWorker() {
         if (isWaitWorker()) {
             return waitWorkers.poll();
         }
         return null;
     }
 
-    public void callWorker() {
-        this.workerIndex = (this.workerIndex + 1) % this.workerList.size();
-    }
-
-    public void waitWorker() {
-        String currentWorker = getCurrentWorker();
-        this.waitWorkers.add(currentWorker);
-        callWorker();;
+    public String runAwayWorker() {
+        int grepWorkerIndex = this.workerIndex - 1;
+        if (grepWorkerIndex < 0) {
+            grepWorkerIndex = this.workerList.size();
+        }
+        this.waitWorkers.add(workerList.get(grepWorkerIndex));
+        return workerList.get(this.workerIndex++);
     }
 }

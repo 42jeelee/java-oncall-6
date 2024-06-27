@@ -38,12 +38,13 @@ public class CalendarModel {
     }
 
     public boolean isCurrentHoliday() {
-        return Holiday.getHolidaysByIndex(month - 1).contains(day);
+        return koDay == KoDay.토 || koDay == KoDay.일 ||
+            Holiday.getHolidaysByIndex(month - 1).contains(day);
     }
 
     public String currentToString() {
         String str = month + "월 " + day + "일 " + koDay.name();
-        if (isCurrentHoliday()) {
+        if (isCurrentHoliday() && koDay != KoDay.토 && koDay != KoDay.일) {
             str += "(휴일)";
         }
         return str;

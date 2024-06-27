@@ -8,6 +8,6 @@ public class OnCallOutputView {
     }
 
     public void printList(List<String> list) {
-        System.out.println(String.join(" ", list));
+        System.out.print(String.join("\n", list));
     }
 }
