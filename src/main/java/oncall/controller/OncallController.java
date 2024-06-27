@@ -1,6 +1,8 @@
 package oncall.controller;
 
+import oncall.model.CalendarModel;
 import oncall.model.KoDay;
+import oncall.model.WorkerModel;
 import oncall.view.OnCallInputView;
 import oncall.view.OnCallOutputView;
 
@@ -10,6 +12,10 @@ import java.util.List;
 public class OncallController {
     final private OnCallInputView inputView;
     final private OnCallOutputView outputView;
+
+    private CalendarModel calendarModel;
+    private WorkerModel weekDayWorkerModel;
+    private WorkerModel holidayWorkerModel;
 
     public OncallController(OnCallInputView inputView, OnCallOutputView outputView) {
         this.inputView = inputView;
@@ -21,9 +27,17 @@ public class OncallController {
     }
 
     private void inputData() {
+        List<String> workerList;
+
         inputFirstLine();
-        inputWorkerList("평일 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
-        inputWorkerList("주말 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
+        workerList = inputWorkerList("평일 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
+        weekDayWorkerModel = new WorkerModel(workerList);
+        workerList = inputWorkerList("주말 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
+        holidayWorkerModel = new WorkerModel(workerList);
+
+        outputView.printLine(calendarModel.currentToString());
+        outputView.printLine(weekDayWorkerModel.getCurrentWorker() + " 포함 " + weekDayWorkerModel.getListSize() + "명");
+        outputView.printLine(holidayWorkerModel.getCurrentWorker() + " 포함 " + holidayWorkerModel.getListSize() + "명");
     }
 
     private void inputFirstLine() {
@@ -35,16 +49,13 @@ public class OncallController {
             if (month < 1 || month > 12) {
                 throw new IllegalArgumentException();
             }
-            /*
-            * Calendar Service
-            * */
-            outputView.printLine(month + ", " + koDay.name());
+            calendarModel = new CalendarModel(month, koDay);
         } catch (Exception e) {
             throw new IllegalArgumentException("[ERROR] Invalid Input.");
         }
     }
 
-    private void inputWorkerList(String prompt) {
+    private List<String> inputWorkerList(String prompt) {
         String line = inputView.getLine(prompt);
         List<String> workerList =  Arrays.stream(line.split("[,|\\s]+"))
                 .map(String::trim)
@@ -59,9 +70,6 @@ public class OncallController {
                 throw new IllegalArgumentException("[ERROR] Invalid Input.");
             }
         }
-        /*
-        * WorkerList Service
-        * */
-        outputView.printList(workerList);
+        return workerList;
     }
 }
