@@ -4,6 +4,7 @@ import oncall.model.CalendarModel;
 import oncall.model.KoDay;
 import oncall.model.WorkerModel;
 import oncall.service.OnCallService;
+import oncall.service.ValidService;
 import oncall.view.OnCallInputView;
 import oncall.view.OnCallOutputView;
 
@@ -34,51 +35,71 @@ public class OncallController {
     }
 
     private void inputData() {
-        List<String> workerList;
-
         inputFirstLine();
-        workerList = inputWorkerList("평일 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
-        weekDayWorkerModel = new WorkerModel(workerList);
-        workerList = inputWorkerList("주말 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
-        holidayWorkerModel = new WorkerModel(workerList);
+        do {
+            try {
+                inputWeekdayWorkerList("평일 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
+                inputHolidayWorkerList("주말 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
 
-        if (weekDayWorkerModel.getListSize() != holidayWorkerModel.getListSize()) {
-            throw new IllegalArgumentException("[ERROR] Invalid Input.");
-        }
-
+                if (weekDayWorkerModel.getListSize() != holidayWorkerModel.getListSize()) {
+                    throw new IllegalArgumentException("[ERROR] Invalid Input.");
+                }
+                break;
+            } catch (IllegalArgumentException e) {
+                outputView.printLine(e.getMessage());
+            }
+        } while (true);
         onCallService = new OnCallService(calendarModel, weekDayWorkerModel, holidayWorkerModel);
     }
 
     private void inputFirstLine() {
-        String line = inputView.getLine("비상 근무를 배정할 월과 시작 요일을 입력하세요> ");
-        try {
-            int month = Integer.parseInt(line.split("[,|\\s]+")[0].trim());
-            KoDay koDay = KoDay.valueOf(line.split("[,|\\s]+")[1].trim());
+        do {
+            String line = inputView.getLine("비상 근무를 배정할 월과 시작 요일을 입력하세요> ");
+            try {
+                ValidService.isValidFirstLine(line);
+                int month = Integer.parseInt(line.split("[,|\\s]+")[0].trim());
+                KoDay koDay = KoDay.valueOf(line.split("[,|\\s]+")[1].trim());
 
-            if (month < 1 || month > 12) {
-                throw new IllegalArgumentException();
+                if (month < 1 || month > 12) {
+                    throw new IllegalArgumentException("[ERROR] Invalid Input.");
+                }
+                calendarModel = new CalendarModel(month, koDay);
+                break;
+            } catch (IllegalArgumentException e) {
+                outputView.printLine(e.getMessage());
             }
-            calendarModel = new CalendarModel(month, koDay);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("[ERROR] Invalid Input.");
-        }
+        } while (true);
     }
 
-    private List<String> inputWorkerList(String prompt) {
-        String line = inputView.getLine(prompt);
-        List<String> workerList =  Arrays.stream(line.split("[,|\\s]+"))
-                .map(String::trim)
-                .toList();
-        if (!(5 <= workerList.size() && workerList.size() <= 35)
-                || workerList.size() != workerList.stream().distinct().count()) {
-            throw new IllegalArgumentException("[ERROR] Invalid Input.");
-        }
-
-        for (String worker : workerList) {
-            if (worker.length() > 5) {
-                throw new IllegalArgumentException("[ERROR] Invalid Input.");
+    private void inputWeekdayWorkerList(String prompt) {
+        do {
+            String line = inputView.getLine(prompt);
+            List<String> workerList = Arrays.stream(line.split("[,|\\s]+"))
+                    .map(String::trim)
+                    .toList();
+            try {
+                ValidService.isValidWorkerList(workerList);
+                this.weekDayWorkerModel = new WorkerModel(workerList);
+                break;
+            } catch (IllegalArgumentException e) {
+                outputView.printLine(e.getMessage());
             }
-        }
-        return workerList;
+        } while (true);
+    }
+
+    private void inputHolidayWorkerList(String prompt) {
+        do {
+            String line = inputView.getLine(prompt);
+            List<String> workerList = Arrays.stream(line.split("[,|\\s]+"))
+                    .map(String::trim)
+                    .toList();
+            try {
+                ValidService.isValidWorkerList(workerList);
+                this.holidayWorkerModel = new WorkerModel(workerList);
+                break;
+            } catch (IllegalArgumentException e) {
+                outputView.printLine(e.getMessage());
+            }
+        } while (true);
     }
 }
