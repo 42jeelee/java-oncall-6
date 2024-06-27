@@ -3,9 +3,11 @@ package oncall.controller;
 import oncall.model.CalendarModel;
 import oncall.model.KoDay;
 import oncall.model.WorkerModel;
+import oncall.service.OnCallService;
 import oncall.view.OnCallInputView;
 import oncall.view.OnCallOutputView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,6 +19,8 @@ public class OncallController {
     private WorkerModel weekDayWorkerModel;
     private WorkerModel holidayWorkerModel;
 
+    private OnCallService onCallService;
+
     public OncallController(OnCallInputView inputView, OnCallOutputView outputView) {
         this.inputView = inputView;
         this.outputView = outputView;
@@ -24,6 +28,9 @@ public class OncallController {
 
     public void onCall() {
         inputData();
+
+        ArrayList<String> callWorkerList = onCallService.getCallWorkerList();
+        outputView.printList(callWorkerList);
     }
 
     private void inputData() {
@@ -35,9 +42,11 @@ public class OncallController {
         workerList = inputWorkerList("주말 비상 근무 순번대로 사원 닉네임을 입력하세요> ");
         holidayWorkerModel = new WorkerModel(workerList);
 
-        outputView.printLine(calendarModel.currentToString());
-        outputView.printLine(weekDayWorkerModel.getCurrentWorker() + " 포함 " + weekDayWorkerModel.getListSize() + "명");
-        outputView.printLine(holidayWorkerModel.getCurrentWorker() + " 포함 " + holidayWorkerModel.getListSize() + "명");
+        if (weekDayWorkerModel.getListSize() != holidayWorkerModel.getListSize()) {
+            throw new IllegalArgumentException("[ERROR] Invalid Input.");
+        }
+
+        onCallService = new OnCallService(calendarModel, weekDayWorkerModel, holidayWorkerModel);
     }
 
     private void inputFirstLine() {
