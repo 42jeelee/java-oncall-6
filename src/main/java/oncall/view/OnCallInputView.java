@@ -1,7 +1,5 @@
 package oncall.view;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import camp.nextstep.edu.missionutils.Console;
 
 public class OnCallInputView {

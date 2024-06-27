@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OncallController {
-    private OnCallInputView inputView;
-    private OnCallOutputView outputView;
+    final private OnCallInputView inputView;
+    final private OnCallOutputView outputView;
 
     public OncallController(OnCallInputView inputView, OnCallOutputView outputView) {
         this.inputView = inputView;
